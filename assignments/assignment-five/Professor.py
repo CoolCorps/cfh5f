@@ -22,7 +22,7 @@ class Professor(Staff.Staff):
         self.update_user_db()
 
     def drop_student(self, name, course):
-        del self.users[self.name]['courses'][course]
+        del self.users[name]['courses'][course]
         self.update_user_db()
 
 
