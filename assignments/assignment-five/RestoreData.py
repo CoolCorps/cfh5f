@@ -144,7 +144,7 @@ users = {
                     'ontime': False
                 },
                 'assignment2': {
-                    'Grade': 5,
+                    'grade': 5,
                     'Submission Data': '2/7/20',
                     'Submission': 'Blah2 Blah2 Blah2',
                     'ontime': False
