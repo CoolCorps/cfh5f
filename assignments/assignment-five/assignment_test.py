@@ -94,11 +94,31 @@ def test_check_ontime(grading_system):
 
 #9
 def test_check_grades(grading_system):
-    pass
+    user = 'hdjsr7'
+    course = 'software_engineering'
+
+    grading_system.login(user, 'pass1234')
+
+    grades = grading_system.usr.check_grades(course)
+    
+    for assignment in grades:
+        assert assignment[0] in grading_system.users[user]['courses'][course]
+        assert assignment[1] == grading_system.users[user]['courses'][course][assignment[0]]['grade']
 
 #10
 def test_view_assignments(grading_system):
-    pass
+    user = 'hdjsr7'
+    course = 'databases'
+
+    grading_system.login(user, 'pass1234')
+
+    assignments = grading_system.usr.view_assignments(course)
+
+    assert len(assignments) == len(grading_system.courses[course]['assignments'])
+
+    for assignment in assignments:
+        assert assignment[0] in grading_system.courses[course]['assignments']
+        assert assignment[1] == grading_system.courses[course]['assignments'][assignment[0]]['due_date']
 
 #-------------------------
 
