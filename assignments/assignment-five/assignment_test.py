@@ -1,8 +1,10 @@
 import pytest
 import System
+import RestoreData as rd
 
 @pytest.fixture
 def grading_system():
+    rd.reloadDataToFile()
     gradingSystem = System.System()
     gradingSystem.load_data()
     return gradingSystem
@@ -64,9 +66,9 @@ def test_add_student(grading_system):
 def test_drop_student(grading_system):
     grading_system.login('goggins', 'augurrox')
 
-    grading_system.usr.drop_student('hdjsr7', 'databases')
+    grading_system.usr.drop_student('hdjsr7', 'software_engineering')
 
-    assert 'databases' not in grading_system.users['hdjsr7']['courses']
+    assert 'software_engineering' not in grading_system.users['hdjsr7']['courses']
 
 #7
 def test_submit_assignment(grading_system):
