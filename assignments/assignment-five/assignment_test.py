@@ -51,8 +51,8 @@ def test_create_assignment(grading_system):
 
     grading_system.usr.create_assignment(assignment, dueDate, course)
     
-    assert assignment in grading_system.courses[course]
-    assert grading_system.courses[course][assignment][dueDate] == dueDate
+    assert assignment in grading_system.courses[course]['assignments']
+    assert grading_system.courses[course]['assignments'][assignment]['due_date'] == dueDate
 
 #5
 def test_add_student(grading_system):
@@ -76,7 +76,9 @@ def test_submit_assignment(grading_system):
     assignmentName = 'assignment1'
     course = 'cloud_computing'
     submission = 'Blahhhhh'
-    date = '03/01/20'
+
+    #due date is 1/3/20 so the submission should NOT be marked as on time
+    date = '01/07/20'
 
     grading_system.login(user, 'pass1234')
 
@@ -86,6 +88,7 @@ def test_submit_assignment(grading_system):
 
     assert assignment['submission_date'] == date
     assert assignment['submission'] == submission
+    assert not assignment['ontime']
 
 #8
 def test_check_ontime(grading_system):
