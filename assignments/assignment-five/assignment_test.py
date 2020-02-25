@@ -128,11 +128,53 @@ def test_view_assignments(grading_system):
 #-------------------------
 
 #11
+#try to log in with a username that does not exist
+def test_login_wrong_username(grading_system):
+    name = 'cmhbf6'
+    password = 'bestTA'
+    grading_system.login(name, password)
+    
+    assert grading_system.usr == None
 
 #12
+#try checking the password with a username that does not exist
+def test_check_password_wrong_username(grading_system):
+    assert not grading_system.check_password('cmhbf6', 'bestTA')
 
 #13
+#test to makes sure professor can not add a student to a class they are not in charge of
+def test_professor_permissions(grading_system):
+    grading_system.login('goggins', 'augurrox')
+
+    grading_system.usr.add_student('yted91', 'comp_sci')
+
+    #comp_sci should not be in the student's courses because add_student
+    #should not let 'goggins' user add a student to the comp_sci class that
+    #he does not teach
+    assert 'comp_sci' not in grading_system.users['yted91']['courses']
 
 #14
+#try to check the grades for a class you are not in
+def test_check_grades_invalid_class(grading_system):
+    user = 'hdjsr7'
+    course = 'comp_sci'
+
+    grading_system.login(user, 'pass1234')
+
+    grades = grading_system.usr.check_grades(course)
+    
+    for assignment in grades:
+        assert assignment[0] in grading_system.users[user]['courses'][course]
+        assert assignment[1] == grading_system.users[user]['courses'][course][assignment[0]]['grade']
 
 #15
+#try to drop student from a class you are not a professor of
+def test_drop_student_permissions(grading_system):
+    grading_system.login('goggins', 'augurrox')
+
+    grading_system.usr.drop_student('hdjsr7', 'cloud_computing')
+
+    #check that cloud_computing is still in their courses because drop_student
+    #should not be able to remove the class because 'goggins' is not the professor
+    #of cloud_computing
+    assert 'cloud_computing' in grading_system.users['hdjsr7']['courses']
