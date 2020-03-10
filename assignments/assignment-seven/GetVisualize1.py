@@ -3,7 +3,7 @@ import requests
 import sys
 
 try:
-    with open('request.json', 'r') as openfile: 
+    with open('repo_list.json', 'r') as openfile: 
         repos = json.load(openfile)
 except:
     request = requests.get('http://czi2.osshealth.io:5153/api/unstable/repos') 
