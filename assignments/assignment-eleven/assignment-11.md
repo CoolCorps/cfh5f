@@ -1,5 +1,7 @@
 # Working Group
 
+Value working group
+
 https://github.com/CallumFerguson/wg-value
 
 # Podcast reflections:
