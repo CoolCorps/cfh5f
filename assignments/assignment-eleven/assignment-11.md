@@ -1,3 +1,8 @@
+# CHAOSS Community Call
+
+April 7 at 11am: General CHAOSS Weekly Call
+https://docs.google.com/document/d/1PMDWc6xMe0fNE7shxTK5_HE_ykRBG5w55_Zx5hvzsEY/edit
+
 # Working Group
 
 Value working group
