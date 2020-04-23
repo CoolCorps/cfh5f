@@ -1,1 +1,3 @@
 # Open Source Software Licenses
+
+After reading the two articles about licenses, I would choose to use the MIT license for an open source project I might create. I like how it does not restrict its usage to other open source projects like how the GNU General Public License (GPL) does. I think by using a more open license more people will want to use it, and these people might contribute to the project which will increase the health of the open source project.

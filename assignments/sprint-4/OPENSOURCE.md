@@ -1,1 +1,3 @@
 # Article Reflections
+
+I found the distinction between intrinsic and extrinsic motivations interesting. I didn't realize that some people contribute to open source projects just because they find it fun. I have personally contributed to the open source projects Mirror and Telepathy which are multiplayer libraries for Unity, but the only reason I did is because there was a bug I needed to fix to continue development of my game which used these libraries.
