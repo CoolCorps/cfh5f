@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>WebGL</title>
+
+        <link rel="stylesheet" type="text/css" href="styles.css">
+
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/socket.io-client@2/dist/socket.io.js"></script>
+
+        <script src="./../webgl/utilities/cannon.min.js"></script>
+        <script src="./../webgl/utilities/gl-matrix-min.js"></script>
+        <script src="./../webgl/utilities/webgl-obj-loader.js"></script>
+        <script src="./../webgl/utilities/perlin.js"></script>
+        <script src="./../webgl/utilities/seedrandom.js"></script>
+
+        <script src="./../webgl/utilities/utility.js"></script>
+        <script src="./../webgl/utilities/KeyCodes.js"></script>
+        <script src="./../webgl/engine/engine.js"></script>
+
+        <script src="./../webgl/materials/defaultMaterial.js"></script>
+        <script src="./../webgl/materials/unlitMaterial.js"></script>
+        <script src="./../webgl/materials/crosshairMaterial.js"></script>
+        <script src="./../webgl/materials/tankTreadsMaterial.js"></script>
+        <script src="./../webgl/materials/stormMaterial.js"></script>
+
+        <script src="./../webgl/models/cube.obj"></script>
+        <script src="./../webgl/models/dog.obj"></script>
+        <script src="./../webgl/models/sphere.obj"></script>
+        <script src="./../webgl/models/cylinder.obj"></script>
+        <script src="./../webgl/models/quad.obj"></script>
+        <script src="./../webgl/models/flash.obj"></script>
+        <script src="./../webgl/models/palm.obj"></script>
+
+        <script src="./../webgl/models/tankTracks.obj"></script>
+        <script src="./../webgl/models/tank.obj"></script>
+        <script src="./../webgl/models/turret.obj"></script>
+        <script src="./../webgl/models/barrel.obj"></script>
+
+        <script src="../webgl/scenes/testScene.js"></script>
+        <script src="../webgl/scenes/mainScene.js"></script>
+
+        <script src="index.js"></script>
+    </head>
+    <body>
+        <h1 id="info">Waiting for another player to join</h1>
+        <canvas id="glcanvas" width="960" height="540"></canvas>
+        <br>
+        <button type="button" onclick="leave()">Leave</button>
+    </body>
+</html>
