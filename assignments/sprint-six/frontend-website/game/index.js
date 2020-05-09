@@ -1,4 +1,26 @@
-let sceneId = 0
+let googleUser = getCookie("googleUser")
+if (googleUser) {
+    console.log("googleUser found")
+} else {
+    console.log("googleUser not found")
+    window.location.href = "/login"
+}
+
+function getCookie(cname) {
+    var name = cname + "=";
+    var decodedCookie = decodeURIComponent(document.cookie);
+    var ca = decodedCookie.split(';');
+    for (var i = 0; i < ca.length; i++) {
+        var c = ca[i];
+        while (c.charAt(0) == ' ') {
+            c = c.substring(1);
+        }
+        if (c.indexOf(name) == 0) {
+            return c.substring(name.length, c.length);
+        }
+    }
+    return "";
+}
 
 //let fogColor = [0.6863, 0.7804, 0.8824, 1.0]; //blue
 let fogColor = [185, 124, 70, 1.0]; //orange sand
@@ -55,6 +77,15 @@ state.mouse = {
 
 let textures = {}
 $(() => {
+    if (googleUser) {
+        googleUser = JSON.parse(googleUser)
+        console.log(googleUser)
+        googleUserImageUrl = googleUser.Pt.QK
+        let googleUserName = googleUser.Pt.Ad
+        $("#profileName").html(googleUserName)
+        $("#profilePicture").attr("src", googleUserImageUrl)
+    }
+
     const canvas = document.querySelector('#glcanvas');
     const gl = canvas.getContext('webgl', { premultipliedAlpha: false, alpha: false }) ||
         canvas.getContext('experimental-webgl', { premultipliedAlpha: false, alpha: false });
@@ -92,10 +123,15 @@ $(() => {
         "../webgl/images/crosshair.png",
         "../webgl/images/flash.png",
         "../webgl/images/palm.jpg",
-        "../webgl/images/wall.jpg"
+        "../webgl/images/wall.jpg",
+        "../webgl/images/profile.jpg"
     ]
     let images = []
     let numLoadedImages = 0
+
+    function isPowerOf2(value) {
+        return (value & (value - 1)) == 0;
+    }
 
     imagePaths.forEach((path) => {
         images.push(new Image())
@@ -105,7 +141,18 @@ $(() => {
             textures[key] = gl.createTexture()
             gl.bindTexture(gl.TEXTURE_2D, textures[key]);
             gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this);
-            gl.generateMipmap(gl.TEXTURE_2D);
+
+            if (isPowerOf2(this.width) && isPowerOf2(this.height)) {
+                // Yes, it's a power of 2. Generate mips.
+                gl.generateMipmap(gl.TEXTURE_2D);
+            } else {
+                // No, it's not a power of 2. Turn off mips and set wrapping to clamp to edge
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+                //gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_R, gl.CLAMP_TO_EDGE);
+                //gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+            }
 
             numLoadedImages++
             if (numLoadedImages == imagePaths.length) {
@@ -136,7 +183,7 @@ function start(gl, ext) {
             socket = io("18.188.135.254:8080");
         else
             throw "Unknown mode."
-        
+
         let rejected = false
 
         socket.on("connect_error", function (e) {
@@ -145,7 +192,7 @@ function start(gl, ext) {
         })
         socket.on('connect', function () {
             console.log("connect");
-            socket.emit("request_join", true)
+            socket.emit("request_join", googleUserImageUrl)
         });
         socket.on("reject_join", data => {
             rejected = true
@@ -158,7 +205,10 @@ function start(gl, ext) {
             let seed = data.seed
             Math.seedrandom(seed)
             noise.seed(Math.random())
-            main(socket, data.id, data.players, gl, ext)
+            main(socket, data.id, {
+                playersAtConnect: data.players,
+                playersImages: data.playersImages
+            }, gl, ext)
         });
         socket.on('disconnect', function () {
             console.log("disconnect");
@@ -222,12 +272,7 @@ function main(socket, playerId, playersAtConnect, gl, ext) {
         state.mouse.movementY += movementY
     }
 
-    if (sceneId == 0)
-        initMainScene(gl, ext, socket, playerId, playersAtConnect)
-    else if (sceneId == 1)
-        initTestScene(gl, ext, socket, playerId, playersAtConnect)
-    else
-        alert("Invalid SceneId.")
+    initMainScene(gl, ext, socket, playerId, playersAtConnect)
 
     var then = 0;
     function render(now) {

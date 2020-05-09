@@ -8,9 +8,38 @@ function initMainScene(gl, ext, socket, playerId, playersAtConnect) {
     const tankTracksMaterial = newTankTreadsMaterial(gl, ext, textures["tracks.jpg"])
     const tankTracksMaterialStatic = newDefaultMaterial(gl, ext, textures["tracks.jpg"])
     const crosshairMaterial = newCrosshairMaterial(gl, ext, textures["crosshair.png"])
+    const profileMaterial = newCrosshairMaterial(gl, ext, textures["profile.jpg"], false)
     const flashMaterial = newCrosshairMaterial(gl, ext, textures["flash.png"])
     const palmMaterial = newDefaultMaterial(gl, ext, textures["palm.jpg"])
     const wallMaterial = newDefaultMaterial(gl, ext, textures["wall.jpg"])
+
+    function getProfileMaterial(profilePictureUrl) {
+        function isPowerOf2(value) {
+            return (value & (value - 1)) == 0;
+        }
+        let image = new Image()
+        let texture = gl.createTexture()
+        image.addEventListener('load', function () {
+            gl.bindTexture(gl.TEXTURE_2D, texture);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+
+            if (isPowerOf2(image.width) && isPowerOf2(image.height)) {
+                // Yes, it's a power of 2. Generate mips.
+                gl.generateMipmap(gl.TEXTURE_2D);
+            } else {
+                // No, it's not a power of 2. Turn off mips and set wrapping to clamp to edge
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+                //gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_R, gl.CLAMP_TO_EDGE);
+                //gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+            }
+        })
+        image.crossOrigin = "anonymous"
+        image.src = profilePictureUrl
+        const material = newCrosshairMaterial(gl, ext, texture, false)
+        return material
+    }
 
     var noFrictionMaterial = new CANNON.Material();
     noFrictionMaterial.friction = 0
@@ -176,6 +205,22 @@ function initMainScene(gl, ext, socket, playerId, playersAtConnect) {
     let tank = tankParts.tank
     let turret = tankParts.turret
     let barrel = tankParts.barrel
+
+    // let profilePicture = new GameObject()
+    // let pScale = 2
+    // profilePicture.localScale = new Vector3(pScale, pScale, 1)
+    // profilePicture.color = [0, 0, 0, 0.75]
+    // profilePicture.initDraw(gl, ext, quadMesh, getProfileMaterial(googleUserImageUrl))
+    // profilePicture.script.update = (gameObject, state) => {
+    //     gameObject.localPosition = tank.position
+    //     gameObject.localPosition.y += 7.5
+    //     let lookPos = Vector3.zero
+    //     if (camera)
+    //         lookPos = new Vector3(camera.position)
+    //     gameObject.lookAt(lookPos)
+    //     gameObject.rotateY(180)
+    //     gameObject.rotateZ(180)
+    // }
 
     let flash = new GameObject()
     flash.parent = barrel
@@ -512,21 +557,43 @@ function initMainScene(gl, ext, socket, playerId, playersAtConnect) {
         updatePlayer()
         setInterval(updatePlayer, 16)
 
-        function createNewPlayer(position, rotation) {
+        function createNewPlayer(position, rotation, imageUrl) {
             let player = getTank(false)
             player.tank.body.type = CANNON.Body.KINEMATIC
             //player.tank.body.mass = 0
             player.localPosition = position
             player.localRotation = rotation
+
+            let profilePicture = new GameObject()
+            let pScale = 2
+            profilePicture.localScale = new Vector3(pScale, pScale, 1)
+            profilePicture.color = [0, 0, 0, 0.75]
+            profilePicture.initDraw(gl, ext, quadMesh, getProfileMaterial(imageUrl))
+            profilePicture.script.update = (gameObject, state) => {
+                if (player == null || player.tank == null) {
+                    Destroy(gameObject)
+                }
+                else {
+                    gameObject.localPosition = player.tank.position
+                    gameObject.localPosition.y += 7.5
+                    let lookPos = Vector3.zero
+                    if (camera)
+                        lookPos = new Vector3(camera.position)
+                    gameObject.lookAt(lookPos)
+                    gameObject.rotateY(180)
+                    gameObject.rotateZ(180)
+                }
+            }
+
             return player
         }
 
         console.log(playersAtConnect)
 
-        for (let id in playersAtConnect) {
+        for (let id in playersAtConnect.playersAtConnect) {
             if (id != playerId) {
-                let position = new Vector3(playersAtConnect[id].p[0], playersAtConnect[id].p[1], playersAtConnect[id].p[2])
-                players[id] = createNewPlayer(position, playersAtConnect[id].q)
+                let position = new Vector3(playersAtConnect.playersAtConnect[id].p[0], playersAtConnect.playersAtConnect[id].p[1], playersAtConnect.playersAtConnect[id].p[2])
+                players[id] = createNewPlayer(position, playersAtConnect.playersAtConnect[id].q, playersAtConnect.playersImages[id])
             }
         }
 
@@ -556,9 +623,9 @@ function initMainScene(gl, ext, socket, playerId, playersAtConnect) {
             }
         })
         socket.on("player_connect", (data) => {
-            if (data != playerId) {
-                console.log("Player connected: " + data)
-                players[data] = createNewPlayer(new Vector3(0, 0, 0), quat.create())
+            if (data.id != playerId) {
+                console.log("Player connected: " + data.id)
+                players[data.id] = createNewPlayer(new Vector3(0, 0, 0), quat.create(), data.imageUrl)
             }
         })
         socket.on("player_disconnect", (data) => {

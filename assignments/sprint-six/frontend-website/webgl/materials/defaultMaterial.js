@@ -1,4 +1,4 @@
-function newDefaultMaterial(gl, ext, texture) {
+function newDefaultMaterial(gl, ext, texture, flip) {
     const vsSource = `
     attribute vec4 aVertexPosition;
     attribute vec3 aVertexNormal;
@@ -9,6 +9,7 @@ function newDefaultMaterial(gl, ext, texture) {
     uniform mat4 projection;
 
     uniform mat4 uNormalMatrix;
+    uniform float flip;
 
     varying vec3 v_normal;
     //varying float shading;
@@ -21,7 +22,7 @@ function newDefaultMaterial(gl, ext, texture) {
         v_normal = mat3(uNormalMatrix) * aVertexNormal;
         vec3 normal = normalize(v_normal);
         //shading = dot(normal, (vec3(0.5, 0.7, 1)));
-        vTexcoord = vec2(aTexcoord.x, -aTexcoord.y);
+        vTexcoord = vec2(aTexcoord.x, flip * aTexcoord.y);
 
         fogPosition = (view * model * aVertexPosition).xyz;
     }
@@ -68,6 +69,7 @@ function newDefaultMaterial(gl, ext, texture) {
             normalMatrix: gl.getUniformLocation(defaultMaterialProgram, 'uNormalMatrix'),
             color: gl.getUniformLocation(defaultMaterialProgram, 'uColor'),
             fogColor: gl.getUniformLocation(defaultMaterialProgram, 'fogColor'),
+            flip: gl.getUniformLocation(defaultMaterialProgram, 'flip'),
         },
         init: (draw) => {
             gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
@@ -100,6 +102,10 @@ function newDefaultMaterial(gl, ext, texture) {
             gl.uniformMatrix4fv(draw.material.uniformLocations.normalMatrix, false, uniforms.normalMatrix);
             gl.uniform4fv(draw.material.uniformLocations.color, uniforms.color);
             gl.uniform4fv(draw.material.uniformLocations.fogColor, uniforms.fogColor);
+            if(flip == null || flip)
+                gl.uniform1f(draw.material.uniformLocations.flip, -1.0)
+            else
+            gl.uniform1f(draw.material.uniformLocations.flip, 1.0)
             gl.bindTexture(gl.TEXTURE_2D, texture);
         }
     };

@@ -23,7 +23,10 @@ let gameStarted = false
 let startingSoon = false
 let gameOver = false
 
-var players = {};
+let startTime = 0
+
+let players = {};
+let playersImages = {}
 
 let seed = Math.floor(Math.random() * 50000)
 
@@ -42,16 +45,21 @@ io.on('connection', socket => {
                 b: 0,
                 alive: true
             }
+            playersImages[socket.id] = data
             console.log("Connected: " + socket.id + ", # players: " + Object.keys(players).length)
             socket.emit("get_id", {
                 id: socket.id,
                 players: players,
+                playersImages: playersImages,
                 seed: seed,
                 gameStarted: gameStarted
             })
-            if(startingSoon)
-                socket.emit("starting_soon", 5000)
-            socket.broadcast.emit("player_connect", socket.id)
+            if (startingSoon)
+                socket.emit("starting_soon", 15000)
+            socket.broadcast.emit("player_connect", {
+                id: socket.id,
+                imageUrl: data
+            })
         }
     })
 
@@ -63,6 +71,7 @@ io.on('connection', socket => {
         if (socket.id in players) {
             socket.broadcast.emit("player_disconnect", socket.id)
             delete players[socket.id]
+            delete playersImages[socket.id]
             console.log("Disconnect: " + socket.id + ", # players: " + Object.keys(players).length)
         }
     });
@@ -106,6 +115,26 @@ function update() {
                     startingSoon = false
                     gameOver = false
                     players = {}
+                    playersImages = {}
+                    io.emit("reset_game", true)
+                    console.log("Resetting game...")
+                }, 3000)
+                console.log("Winner. Restarting soon...")
+            }
+        }
+        var d = new Date();
+        var n = d.getTime();
+        if (n - startTime > 60 * 2 * 1000 + 5000) {
+            if (!gameOver) {
+                gameOver = true
+                io.emit("game_over", true)
+                setTimeout(() => {
+                    seed = Math.floor(Math.random() * 50000)
+                    gameStarted = false
+                    startingSoon = false
+                    gameOver = false
+                    players = {}
+                    playersImages = {}
                     io.emit("reset_game", true)
                     console.log("Resetting game...")
                 }, 3000)
@@ -115,14 +144,16 @@ function update() {
     } else {
         if (numAlive >= 2) {
             if (!startingSoon) {
-                let waitTime = 15000
                 startingSoon = true
-                io.emit("starting_soon", waitTime)
+                io.emit("starting_soon", 15000)
                 setTimeout(() => {
                     gameStarted = true
                     io.emit("start_game", true)
                     console.log("Starting game...")
-                }, waitTime)
+                    var d = new Date();
+                    var n = d.getTime();
+                    startTime = n
+                }, 15000)
                 console.log("Starting soon...")
             }
         }
