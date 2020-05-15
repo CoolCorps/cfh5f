@@ -1,4 +1,4 @@
-# Sprint 6 SSO Project
+# Sprint 7 SSO Project
 
 This project is currently live at: http://webglgame.com.s3-website.us-east-2.amazonaws.com
 
