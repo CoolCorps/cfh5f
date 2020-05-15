@@ -49,13 +49,13 @@ The server runs on port 8080 by default.
 ![Screen Shot](README-images/Capture1.PNG "Screen Shot")
 Login using Google
 
-![Screen Shot](README-images/Capture2.png "Screen Shot")
+![Screen Shot](README-images/Capture2.PNG "Screen Shot")
 Sign into server hosted on AWS
 
-![Screen Shot](README-images/Capture3.png "Screen Shot")
+![Screen Shot](README-images/Capture3.PNG "Screen Shot")
 Application gets basic data about user such as name and profile picture
 
-![Screen Shot](README-images/Capture4.png "Screen Shot")
+![Screen Shot](README-images/Capture4.PNG "Screen Shot")
 In game, your profile picture hovers above your player
 
 # Reflection
