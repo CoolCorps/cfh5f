@@ -1,5 +1,7 @@
 # Sprint 6 SSO Project
 
+This project is currently live at: http://webglgame.com.s3-website.us-east-2.amazonaws.com
+
 This is a continuation of this project:
 https://github.com/CallumFerguson/CS4610FinalSpring2020
 
