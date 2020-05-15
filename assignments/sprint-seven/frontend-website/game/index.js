@@ -152,71 +152,59 @@ function leave() {
 }
 
 function start(gl, ext) {
-    const Mode = Object.freeze({ singlePlayer: 0, multiplayerLocal: 1, multiplayer: 2 })
 
-    let mode = Mode.multiplayerLocal
+    let serverIp = "http://localhost:8080"
 
-    if (mode == Mode.singlePlayer) {
-        main(null, null, null, gl, ext)
-    }
-    else {
-        let socket;
-        if (mode == Mode.multiplayerLocal)
-            socket = io('http://localhost:8080');
-        else if (mode == Mode.multiplayer)
-            socket = io("18.188.135.254:8080");
+    let socket = io(serverIp)
+
+    let rejected = false
+
+    socket.on("connect_error", function (e) {
+        console.log(e)
+        window.location.href = "/"
+    })
+    socket.on('connect', function () {
+        console.log("connect");
+        const id_token = localStorage.getItem("id_token")
+        socket.emit("request_join", id_token)
+    });
+    socket.on("reject_join", data => {
+        rejected = true
+        socket.close()
+        if (data == 1)
+            alert("Cannot join. Game in progress.")
+        else if (data == 2)
+            alert("Player already in game.")
         else
-            throw "Unknown mode."
+            alert("Invalid id_token")
+        window.location.href = "/"
+    })
+    socket.on('get_id', function (data) {
+        console.log("ID: " + data.id);
+        let seed = data.seed
+        Math.seedrandom(seed)
+        noise.seed(Math.random())
+        main(socket, data.id, {
+            playersAtConnect: data.players,
+            playersImages: data.playersImages
+        }, gl, ext)
+    });
+    socket.on('disconnect', function () {
+        console.log("disconnect");
+        window.location.href = "/"
+    });
+    socket.on("echo", (data) => {
+        console.log("echo: " + data)
+    })
 
-        let rejected = false
-
-        socket.on("connect_error", function (e) {
-            console.log(e)
-            window.location.href = "/"
-        })
-        socket.on('connect', function () {
-            console.log("connect");
-            const id_token = localStorage.getItem("id_token")
-            socket.emit("request_join", id_token)
-        });
-        socket.on("reject_join", data => {
-            rejected = true
+    setTimeout(() => {
+        if (!rejected && !socket.connected) {
             socket.close()
-            if(data == 1)
-                alert("Cannot join. Game in progress.")
-            else if(data == 2)
-                alert("Player already in game.")
-            else
-                alert("Invalid id_token")
-            window.location.href = "/"
-        })
-        socket.on('get_id', function (data) {
-            console.log("ID: " + data.id);
-            let seed = data.seed
-            Math.seedrandom(seed)
-            noise.seed(Math.random())
-            main(socket, data.id, {
-                playersAtConnect: data.players,
-                playersImages: data.playersImages
-            }, gl, ext)
-        });
-        socket.on('disconnect', function () {
-            console.log("disconnect");
-            window.location.href = "/"
-        });
-        socket.on("echo", (data) => {
-            console.log("echo: " + data)
-        })
-
-        setTimeout(() => {
-            if (!rejected && !socket.connected) {
-                socket.close()
-                //window.location.href = "/"
-                window.alert("Could not connect to server. Starting in single player mode.")
-                main(null, null, null, gl, ext)
-            }
-        }, 1000)
-    }
+            //window.location.href = "/"
+            window.alert("Could not connect to server. Starting in single player mode.")
+            main(null, null, null, gl, ext)
+        }
+    }, 1000)
 }
 
 function main(socket, playerId, playersAtConnect, gl, ext) {

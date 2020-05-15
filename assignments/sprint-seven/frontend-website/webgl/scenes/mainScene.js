@@ -532,6 +532,10 @@ function initMainScene(gl, ext, socket, playerId, playersAtConnect) {
     const startHealth = 3
     let health = startHealth
 
+    if(socket == null) {
+        $("#info").html("")
+    }
+
     if (socket != null) {
 
         function updatePlayer() {

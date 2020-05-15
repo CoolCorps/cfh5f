@@ -19,11 +19,11 @@ Demo: https://youtu.be/qxom37T8zKA
 
 The client is regular javascript and requires no special setup to run. Simply host the files inside the frontend-website folder as a webserver and connect to it.
 
-You must change the ip or change the game mode to multiplayer local or single player.
+The client attempts to connect to a server on localhost:8080 by default. If it cannot connect, it starts in single player mode.
 
-Search for "mode" in /frontend-website/game/index.js and change it to the desired mode. The ip should be below the mode line.
+To change the server Ip search for "serverIp" in /frontend-website/game/index.js
 
-The client uses Google Sign-In SSO. The client id is hard coded in /frontend-website/login/index.html.
+The client uses Google Sign-In SSO. The client id is hard coded in /frontend-website/login/index.html and /frontend-website/index.html
 
 ## Server
 
@@ -31,10 +31,13 @@ The server is a node.js server with socket.io. To run it, run the following comm
 
 ```sh
 npm install socket.io
+npm install google-auth-library
 ```
 
 ```sh
 node server.js
 ```
 
-Remember to change the ip and game mode of the client so it can connect to the server.
+The server uses Google Sign-In SSO to authenticate clients. The client id is hard coded in /node-sersver/server.js.
+
+The server runs on port 8080 by default.

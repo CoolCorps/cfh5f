@@ -23,6 +23,9 @@ function join() {
 }
 
 function logout() {
+    localStorage.removeItem("googleUser")
+    localStorage.removeItem("id_token")
     localStorage.clear()
+
     window.location.href = "/"
 }
