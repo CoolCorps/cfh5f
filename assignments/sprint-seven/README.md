@@ -46,7 +46,7 @@ The server runs on port 8080 by default.
 
 # Final Iteration
 
-![Screen Shot](README-images/Capture1.png "Screen Shot")
+![Screen Shot](README-images/Capture1.PNG "Screen Shot")
 Login using Google
 
 ![Screen Shot](README-images/Capture2.png "Screen Shot")
