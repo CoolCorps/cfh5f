@@ -2,6 +2,11 @@ var http = require('http');
 var url = require('url');
 var fs = require('fs');
 
+const CLIENT_ID = "97780249168-4o4fu56aho7ttrr1dg3e4dmtjkqbpl63.apps.googleusercontent.com"
+
+const { OAuth2Client } = require('google-auth-library');
+const client = new OAuth2Client(CLIENT_ID);
+
 const server = http.createServer(function (req, res) {
     var q = url.parse(req.url, true);
     var filename = "." + q.pathname;
@@ -25,41 +30,71 @@ let gameOver = false
 
 let startTime = 0
 
-let players = {};
+let players = {}
 let playersImages = {}
+let playerTokens = {}
 
 let seed = Math.floor(Math.random() * 50000)
+
+async function verify(token) {
+    const ticket = await client.verifyIdToken({
+        idToken: token,
+        audience: CLIENT_ID,  // Specify the CLIENT_ID of the app that accesses the backend
+        // Or, if multiple clients access the backend:
+        //[CLIENT_ID_1, CLIENT_ID_2, CLIENT_ID_3]
+    });
+    const payload = ticket.getPayload();
+    const userid = payload['sub'];
+    // If request specified a G Suite domain:
+    //const domain = payload['hd'];
+    //console.log(payload)
+    return payload
+}
 
 const io = require('socket.io')(server);
 console.log("Started server. Listening for connections...")
 io.on('connection', socket => {
     socket.on("request_join", data => {
         if (gameStarted) {
-            socket.emit("reject_join", true)
+            socket.emit("reject_join", 1)
         }
         else {
-            players[socket.id] = {
-                p: [0, 0, 0],
-                q: [0, 0, 0, 1],
-                t: 0,
-                b: 0,
-                alive: true
+            try {
+                verify(data).then((payload) => {
+                    if (Object.values(playerTokens).indexOf(data) == -1) {
+                        players[socket.id] = {
+                            p: [0, 0, 0],
+                            q: [0, 0, 0, 1],
+                            t: 0,
+                            b: 0,
+                            alive: true
+                        }
+                        playersImages[socket.id] = payload.picture
+                        playerTokens[socket.id] = data
+                        console.log("Connected: " + socket.id + ", # players: " + Object.keys(players).length)
+                        socket.emit("get_id", {
+                            id: socket.id,
+                            players: players,
+                            playersImages: playersImages,
+                            seed: seed,
+                            gameStarted: gameStarted
+                        })
+                        if (startingSoon)
+                            socket.emit("starting_soon", 15000)
+                        socket.broadcast.emit("player_connect", {
+                            id: socket.id,
+                            imageUrl: payload.picture
+                        })
+                    }
+                    else {
+                        socket.emit("reject_join", 2)
+                    }
+                })
             }
-            playersImages[socket.id] = data
-            console.log("Connected: " + socket.id + ", # players: " + Object.keys(players).length)
-            socket.emit("get_id", {
-                id: socket.id,
-                players: players,
-                playersImages: playersImages,
-                seed: seed,
-                gameStarted: gameStarted
-            })
-            if (startingSoon)
-                socket.emit("starting_soon", 15000)
-            socket.broadcast.emit("player_connect", {
-                id: socket.id,
-                imageUrl: data
-            })
+            catch (error) {
+                console.log('Bad token')
+                socket.emit("reject_join", 3)
+            }
         }
     })
 
@@ -72,6 +107,7 @@ io.on('connection', socket => {
             socket.broadcast.emit("player_disconnect", socket.id)
             delete players[socket.id]
             delete playersImages[socket.id]
+            delete playerTokens[socket.id]
             console.log("Disconnect: " + socket.id + ", # players: " + Object.keys(players).length)
         }
     });
@@ -116,6 +152,7 @@ function update() {
                     gameOver = false
                     players = {}
                     playersImages = {}
+                    playerTokens = {}
                     io.emit("reset_game", true)
                     console.log("Resetting game...")
                 }, 3000)
@@ -135,6 +172,7 @@ function update() {
                     gameOver = false
                     players = {}
                     playersImages = {}
+                    playerTokens = {}
                     io.emit("reset_game", true)
                     console.log("Resetting game...")
                 }, 3000)

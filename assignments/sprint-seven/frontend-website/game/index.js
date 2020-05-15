@@ -1,25 +1,9 @@
-let googleUser = getCookie("googleUser")
+let googleUser = localStorage.getItem("googleUser")
 if (googleUser) {
     console.log("googleUser found")
 } else {
     console.log("googleUser not found")
     window.location.href = "/login"
-}
-
-function getCookie(cname) {
-    var name = cname + "=";
-    var decodedCookie = decodeURIComponent(document.cookie);
-    var ca = decodedCookie.split(';');
-    for (var i = 0; i < ca.length; i++) {
-        var c = ca[i];
-        while (c.charAt(0) == ' ') {
-            c = c.substring(1);
-        }
-        if (c.indexOf(name) == 0) {
-            return c.substring(name.length, c.length);
-        }
-    }
-    return "";
 }
 
 //let fogColor = [0.6863, 0.7804, 0.8824, 1.0]; //blue
@@ -192,12 +176,18 @@ function start(gl, ext) {
         })
         socket.on('connect', function () {
             console.log("connect");
-            socket.emit("request_join", googleUserImageUrl)
+            const id_token = localStorage.getItem("id_token")
+            socket.emit("request_join", id_token)
         });
         socket.on("reject_join", data => {
             rejected = true
             socket.close()
-            alert("Cannot join. Game in progress.")
+            if(data == 1)
+                alert("Cannot join. Game in progress.")
+            else if(data == 2)
+                alert("Player already in game.")
+            else
+                alert("Invalid id_token")
             window.location.href = "/"
         })
         socket.on('get_id', function (data) {
